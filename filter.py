@@ -8,7 +8,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import numpy as np
-import logging
 from aiogram.fsm.context import FSMContext
 from database.orm import MessageRepository
 from database.engine import Database
@@ -22,17 +21,11 @@ filter_router = Router()
 db = Database()
 message_repo = MessageRepository(db)
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 class ChannelID(StatesGroup):
     channel_id = State()
 
 async def preprocess(text):
     # Улучшенная предобработка текста
-    if not text:
-        return ""
     text = text.lower()
     text = re.sub(r'[^\w\s]', '', text)
     # Можно добавить удаление стоп-слов или лемматизацию по необходимости
@@ -77,163 +70,83 @@ async def compare_message_with_all(new_message, all_messages):
     return similarities, most_similar_idx, max_similarity, features
 
 
-# Удаляем старый обработчик channel_post и создаем новый
 @filter_router.channel_post()
-async def process_channel_post(message: types.Message, bot: Bot, state: FSMContext):
-    """Обрабатывает сообщения из канала"""
-    logger.info(f"Обработка сообщения из канала: {message.message_id}")
-    
-    # Если нет текста, пропускаем обработку
-    if not message.text:
-        logger.info("Сообщение без текста, пропускаем")
-        return
-    
+async def filter_message(message: types.Message , bot: Bot):
+    # Получаем текст текущего сообщения
     current_message = message.text
     
-    try:
-        # Инициализируем базу данных
-        await db.init()
-        
-        # Получаем сообщения из базы данных
-        db_messages = await message_repo.get_all_messages()
-        message_texts = [msg.text for msg in db_messages]
-        
-        # Если база пуста, добавляем первое сообщение
-        if not message_texts:
-            logger.info("База сообщений пуста, добавляем первое сообщение")
-            await message_repo.add_message(current_message, message.message_id)
-            return
-        
-        # Сохраняем ID канала в состоянии
-        await state.update_data(channel_id=message.chat.id)
-        
-        # Сравниваем с существующими сообщениями
-        similarities, most_similar_idx, max_similarity, features = await compare_message_with_all(current_message, message_texts)
-        
-        # Пороговое значение для определения схожести
-        threshold = 0.3
-        
-        # Проверяем схожесть
-        if max_similarity >= threshold:
-            logger.info(f"Обнаружено похожее сообщение! Схожесть: {max_similarity:.2f}")
-            
-            # Отправляем модератору
-            await bot.copy_message(
-                chat_id=6264939461,
-                from_chat_id=message.chat.id,
-                message_id=message.message_id,
-                reply_markup=await admin_kb()
-            )
-            
-            # Удаляем из канала
-            await bot.delete_message(
-                chat_id=message.chat.id,
-                message_id=message.message_id
-            )
-            
-            logger.info(f"Сообщение удалено из канала {message.chat.id}")
-        else:
-            logger.info(f"Сообщение уникально (схожесть: {max_similarity:.2f})")
-            await message_repo.add_message(current_message, message.message_id)
-            
-    except Exception as e:
-        logger.error(f"Ошибка при обработке сообщения: {e}")
-
-
-# Обработчик обычных сообщений
-@filter_router.message()
-async def process_message(message: types.Message, bot: Bot, state: FSMContext):
-    """Обрабатывает обычные сообщения"""
-    logger.info(f"Обработка обычного сообщения: {message.message_id}")
+    # Инициализируем базу данных, если ещё не инициализирована
+    await db.init()
     
-    # Если нет текста, пропускаем обработку
-    if not message.text:
+    # Получаем все сообщения из базы данных через экземпляр репозитория
+    db_messages = await message_repo.get_all_messages()
+    
+    # Получаем только тексты сообщений из объектов Message
+    message_texts = [msg.text for msg in db_messages]
+    
+    # Если в базе нет сообщений, просто добавляем текущее сообщение
+    if not message_texts:
+        
+        # При добавлении передаем текст и ID сообщения
+        await message_repo.add_message(current_message, message.message_id)
         return
     
-    current_message = message.text
+    # Сравниваем текущее сообщение со всеми сообщениями в базе
+    similarities, most_similar_idx, max_similarity, features = await compare_message_with_all(current_message, message_texts)
     
-    try:
-        # Инициализируем базу данных
-        await db.init()
-        
-        # Получаем сообщения из базы данных
-        db_messages = await message_repo.get_all_messages()
-        message_texts = [msg.text for msg in db_messages]
-        
-        # Если база пуста, добавляем первое сообщение
-        if not message_texts:
-            await message_repo.add_message(current_message, message.message_id)
-            return
-        
-        # Сравниваем с существующими сообщениями
-        similarities, most_similar_idx, max_similarity, features = await compare_message_with_all(current_message, message_texts)
-        
-        # Пороговое значение для определения схожести
-        threshold = 0.3
-        
-        # Проверяем схожесть
-        if max_similarity >= threshold:
-            # Отправляем модератору
-            await bot.copy_message(
-                chat_id=6264939461,
-                from_chat_id=message.chat.id,
-                message_id=message.message_id,
-                reply_markup=await admin_kb()
-            )
+    # Вывод результатов
+   
+    
+    # Вывод сходства с каждым сообщением в базе
+    
+    
+    
+    # Вывод наиболее похожего сообщения
+   
+    
+    # Порог для определения дубликатов
+    threshold = 0.3
+    
+    # Проверяем, является ли сообщение новым (уникальным)
+    if max_similarity >= threshold:
+       
+        # Можно добавить дополнительную логику обработки дубликата
+        # Например, отправить предупреждение пользователю
+        await bot.copy_message(
+            chat_id=192659790,
+            from_chat_id=message.chat.id,
+            message_id=message.message_id,
+            reply_markup= await admin_kb()
             
-            # Удаляем сообщение
-            await message.delete()
-        else:
-            await message_repo.add_message(current_message, message.message_id)
-            
-    except Exception as e:
-        logger.error(f"Ошибка при обработке сообщения: {e}")
+        )
+        
+        await bot.delete_message(
+            chat_id=message.chat.id,
+            message_id=message.message_id
+        )
+        
+        
+    else:
+        
+        
+        # Добавляем сообщение в базу данных с ID сообщения
+        await message_repo.add_message(current_message, message.message_id)
+        
+        
+        
+       
 
 
 @filter_router.callback_query(F.data == 'confirm')
-async def confirm_message(callback: types.CallbackQuery, bot: Bot, state: FSMContext):
-    """Обработчик для подтверждения сообщения"""
+async def confirm_message(callback: types.CallbackQuery, bot : Bot, state : FSMContext):
     GROUP_ID = os.getenv("GROUP_ID")
+    await callback.answer("Сообщение подтверждено")
     
-    try:
-        await callback.answer("Сообщение подтверждено")
-        
-        # Получаем ID канала из состояния
-        data = await state.get_data()
-        channel_id = data.get("channel_id", GROUP_ID)
-        
-        if not channel_id:
-            channel_id = GROUP_ID
-            
-        logger.info(f"Подтверждение сообщения, отправка в канал {channel_id}")
-        
-        # Копируем сообщение в канал/группу
-        await bot.copy_message(
-            chat_id=int(channel_id), 
-            from_chat_id=callback.message.chat.id, 
-            message_id=callback.message.message_id
-        )
-        
-        # Сохраняем сообщение в базе данных
-        await MessageRepository(db).add_message(
-            text=callback.message.text, 
-            message_id=callback.message.message_id
-        )
-        
-        # Удаляем сообщение с кнопками
-        await callback.message.delete()
-        
-    except Exception as e:
-        logger.error(f"Ошибка при подтверждении сообщения: {e}")
-        await callback.message.answer(f"Ошибка: {e}")
-
+    await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
+    await callback.message.delete()
 
 @filter_router.callback_query(F.data == 'reject')
 async def reject_message(callback: types.CallbackQuery, state: FSMContext):
-    """Обработчик для отклонения сообщения"""
-    try:
-        await callback.answer("Сообщение отклонено")
-        await callback.message.delete()
-        logger.info("Сообщение отклонено и удалено")
-    except Exception as e:
-        logger.error(f"Ошибка при отклонении сообщения: {e}")
+    await callback.answer("Сообщение отклонено")
+    await callback.message.delete()
