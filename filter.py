@@ -148,6 +148,6 @@ async def confirm_message(callback: types.CallbackQuery, bot : Bot, state : FSMC
     await callback.message.delete()
 
 @filter_router.callback_query(F.data == 'reject')
-async def reject_message(callback: types.CallbackQuery):
+async def reject_message(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer("Сообщение отклонено")
     await callback.message.delete()

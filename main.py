@@ -1,6 +1,8 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 import os
 from aiogram.filters.command import Command
@@ -14,7 +16,10 @@ load_dotenv()
 
 
 bot = Bot(token=os.getenv("BOT_TOKEN"))
-dp = Dispatcher()
+# Создаем хранилище состояний в памяти
+storage = MemoryStorage()
+# Передаем хранилище состояний при создании диспетчера
+dp = Dispatcher(storage=storage)
 
 # Получаем количество дней до очистки из переменной окружения
 # Если переменная не задана, используем 7 дней по умолчанию
