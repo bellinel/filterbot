@@ -67,7 +67,7 @@ async def compare_message_with_all(new_message, all_messages):
     return similarities, most_similar_idx, max_similarity, features
 
 
-@filter_router.message()
+@filter_router.channel_post()
 async def filter_message(message: types.Message , bot: Bot  ):
     # Получаем текст текущего сообщения
     current_message = message.text
@@ -110,13 +110,17 @@ async def filter_message(message: types.Message , bot: Bot  ):
         # Можно добавить дополнительную логику обработки дубликата
         # Например, отправить предупреждение пользователю
         await bot.copy_message(
-            chat_id=192659790,
+            chat_id=6264939461,
             from_chat_id=message.chat.id,
             message_id=message.message_id,
             reply_markup= await admin_kb()
             
         )
-        await message.delete()
+        
+        await bot.delete_message(
+            chat_id=message.chat.id,
+            message_id=message.message_id
+        )
           
         
     else:
