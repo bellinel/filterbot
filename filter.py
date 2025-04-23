@@ -1,9 +1,9 @@
-import inspect_patch
 import asyncio
 
 from itertools import product
 import os
 import re
+from traceback import print_tb
 from aiogram import Bot, Router
 from aiogram import types
 from dotenv import load_dotenv
@@ -41,6 +41,8 @@ class ChannelID(StatesGroup):
 
 async def preprocess(text):
     # Улучшенная предобработка текста
+    if text is None:
+        return ""  # Возвращаем пустую строку, если текст None
     text = text.lower()
     text = re.sub(r'[^\w\s]', '', text)
     # Можно добавить удаление стоп-слов или лемматизацию по необходимости
@@ -128,12 +130,21 @@ async def filter_message(message: types.Message , bot: Bot):
     if message.sender_chat and message.sender_chat.id == (await bot.get_me()).id:
         print("Сообщение от бота — не удаляем")
         return
-    try:
-        text = message.text.lower()
-    except :
+    
+    # Получаем текст из сообщения или подписи
+    if message.text:
+        text = message.text
+        print('текст')
+    elif message.caption:
         text = message.caption
-        text = text.lower()
+        print('описание')
+    else:
+        print('Сообщение без текста')
+        return  # Если нет ни текста, ни подписи, выходим
         
+    # Приводим к нижнему регистру, если текст не None
+    if text:
+        text = text.lower()
         
     data = await message_repo.get_ne_relevant_filters()
     
@@ -221,7 +232,10 @@ async def filter_message(message: types.Message , bot: Bot):
 
 
     # Получаем текст текущего сообщения
-    current_message = message.text
+    try: 
+        current_message = message.text
+    except:
+        current_message = message.caption
     
     # Инициализируем базу данных, если ещё не инициализирована
     await db.init()
