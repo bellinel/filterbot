@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from database.engine import Message, Database
+from database.engine import Message, Database, NeRelevant_filter, Reklama_filter
 import logging
 from sqlalchemy import text
 
@@ -79,4 +79,108 @@ class MessageRepository:
             await session.commit()
             self.logger.info("База данных сообщений очищена")
 
+    async def add_reklama_filter(self, text: str) -> Reklama_filter:
+        """
+        Добавляет новый фильтр рекламы в базу данных.
 
+        Args:
+            text (str): Текст фильтра рекламы
+
+        Returns:
+            Reklama_filter: Созданный объект фильтра рекламы
+        """
+        async with self.db.session_factory() as session:
+            reklama_filter = Reklama_filter(text=text)
+            session.add(reklama_filter)
+            await session.commit()
+            await session.refresh(reklama_filter)
+            self.logger.info(f"Фильтр рекламы '{text}' добавлен в базу данных")
+            
+    async def get_reklama_filters(self) -> list[Reklama_filter]:
+        """
+        Получает все фильтры рекламы из базы данных.
+
+        Returns:
+            list[Reklama_filter]: Список всех фильтров рекламы
+        """
+        async with self.db.session_factory() as session:
+            query = select(Reklama_filter)
+            result = await session.execute(query)
+            reklama_filters = result.scalars().all()
+            return reklama_filters
+    
+    async def delete_reklama_filter(self, text: str) -> None:
+        """
+        Удаляет фильтр рекламы из базы данных по его тексту.
+
+        Args:
+            text (str): Текст фильтра рекламы
+
+        Returns:
+            None
+        """
+        async with self.db.session_factory() as session:
+            query = select(Reklama_filter).where(Reklama_filter.text == text)
+            result = await session.execute(query)
+            reklama_filter = result.scalar_one_or_none()
+
+            if reklama_filter:
+                await session.delete(reklama_filter)
+                await session.commit()
+                self.logger.info(f"Фильтр рекламы '{text}' удален из базы данных")
+            else:
+                self.logger.warning(f"Фильтр рекламы '{text}' не найден в базе данных")
+
+
+    async def add_ne_relevant_filter(self, text: str) -> NeRelevant_filter:
+        """
+        Добавляет новый фильтр не релевантных вакансий в базу данных.
+
+        Args:
+            text (str): Текст фильтра не релевантных вакансий
+
+        Returns:
+            NeRelevant_filter: Созданный объект фильтра не релевантных вакансий
+        """
+        async with self.db.session_factory() as session:
+            ne_relevant_filter = NeRelevant_filter(text=text)
+            session.add(ne_relevant_filter)
+            await session.commit()
+            await session.refresh(ne_relevant_filter)
+            self.logger.info(f"Фильтр не релевантных вакансий '{text}' добавлен в базу данных")
+    
+    async def get_ne_relevant_filters(self) -> list[NeRelevant_filter]:
+        """
+        Получает все фильтры не релевантных вакансий из базы данных.
+
+        Returns:
+            list[NeRelevant_filter]: Список всех фильтров не релевантных вакансий
+        """
+        async with self.db.session_factory() as session:
+            query = select(NeRelevant_filter)
+            result = await session.execute(query)
+            ne_relevant_filters = result.scalars().all()
+            return ne_relevant_filters
+        
+
+    async def delete_ne_relevant_filter(self, text: str) -> None:
+        """
+        Удаляет фильтр не релевантных вакансий из базы данных по его тексту.
+
+        Args:
+            text (str): Текст фильтра не релевантных вакансий
+
+        Returns:
+            None
+        """
+        async with self.db.session_factory() as session:
+            query = select(NeRelevant_filter).where(NeRelevant_filter.text == text)
+            result = await session.execute(query)
+            ne_relevant_filter = result.scalar_one_or_none()
+
+            if ne_relevant_filter:
+                await session.delete(ne_relevant_filter)
+                await session.commit()
+                self.logger.info(f"Фильтр не релевантных вакансий '{text}' удален из базы данных")
+            else:
+                self.logger.warning(f"Фильтр не релевантных вакансий '{text}' не найден в базе данных")

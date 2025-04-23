@@ -1,6 +1,11 @@
+# Импортируем патч для модуля inspect
+from calendar import c
+from distutils.command import clean
+import inspect_patch
+
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
@@ -10,6 +15,8 @@ from database.engine import Database
 from database.orm import MessageRepository
 from filter import filter_router
 import datetime
+from keyboard import clean_day_kb, menu_kb
+from aiogram.fsm.state import State, StatesGroup
     
 
 load_dotenv()
@@ -33,7 +40,9 @@ logging.basicConfig(level=logging.INFO)
 
 dp.include_router(filter_router)
 
-    
+class Clean(StatesGroup):
+    clean_day = State()
+
 
 
 @dp.message(Command("id"))
@@ -45,23 +54,36 @@ async def cleanup_info_command(message: types.Message):
     """Команда для получения информации о периоде очистки базы данных"""
     await message.answer(f"База данных сообщений очищается каждые {DB_CLEANUP_DAYS} дней")
 
-@dp.message(Command("set_cleanup_days"))
-async def set_cleanup_days_command(message: types.Message):
+
+@dp.callback_query(F.data == 'dubli')
+async def dubli(callback: types.CallbackQuery):
+    await callback.message.edit_text(text=f'Период хранения составляет: {DB_CLEANUP_DAYS} days', reply_markup=await clean_day_kb())
+
+
+@dp.callback_query(F.data == 'clean_day')
+async def clean_day(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(text=f'Введите количество дней')
+    await state.set_state(Clean.clean_day)
+
+
+@dp.message(Clean.clean_day)
+async def set_cleanup_days_command(message: types.Message, state : FSMContext):
     """Команда для установки периода очистки базы данных (только для администратора)"""
     # Проверяем, что сообщение содержит аргумент - число дней
-    args = message.text.split()
-    if len(args) != 2:
-        await message.answer("Использование: /set_cleanup_days [количество_дней]")
+    args = message.text
+    args = int(args)
+    if type(args) is not  int:
+        await message.answer("Количество дней должно быть числом")
         return
     
     try:
-        days = int(args[1])
+        days = args
         if days < 1:
             await message.answer("Количество дней должно быть положительным числом")
             return
             
         # Здесь можно добавить проверку прав администратора
-        if message.from_user.id != 192659790: return
+        # if message.from_user.id != 192659790: return
         
         # Записываем новое значение в .env файл
         with open(".env", "r") as f:
@@ -89,9 +111,11 @@ async def set_cleanup_days_command(message: types.Message):
         # Перезапускаем задачу очистки базы данных с новым интервалом
         restart_cleanup_task()
         
-        await message.answer(f"Период очистки базы данных установлен на {days} дней. Задача очистки перезапущена с новым интервалом.")
+        a = await message.answer(f"Период очистки базы данных установлен на {days} дней. Задача очистки перезапущена с новым интервалом.")
+        await asyncio.sleep(3)
+        await a.edit_text('Меню бота', reply_markup=await menu_kb())
         logging.info(f"Период очистки базы данных изменен на {days} дней пользователем {message.from_user.id}. Задача перезапущена.")
-        
+        await state.clear()
     except ValueError:
         await message.answer("Ошибка: укажите корректное целое число дней")
 

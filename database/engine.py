@@ -64,3 +64,18 @@ class Message(Base):
     text = Column(String, nullable=False)
     message_id = Column(Integer, nullable=False)
 
+
+class Reklama_filter(Base):
+    __tablename__ = "reklama_filter"
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String, nullable=False)
+    
+
+class NeRelevant_filter(Base):
+    __tablename__ = "ne_relevant_filter"
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String, nullable=False)
+
+
