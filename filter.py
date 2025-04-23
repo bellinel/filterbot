@@ -1,29 +1,35 @@
+import inspect_patch
 import asyncio
-from cmath import phase
-from email import message
-from operator import call
+
+from itertools import product
 import os
+import re
 from aiogram import Bot, Router
 from aiogram import types
 from dotenv import load_dotenv
 from aiogram  import F
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import re
-import numpy as np
+
 from aiogram.fsm.context import FSMContext
 from database.orm import MessageRepository
 from database.engine import Database
 from aiogram.filters.command import Command
-from aiogram.enums import ChatMemberStatus
+
 from keyboard import admin_kb, filter_admin_kb, menu_kb, reklama_filter_back_kb, reklama_filter_delete_kb, reklama_kb, relevant_filter_back_kb, relevant_filter_delete_kb, relevant_kb
 from aiogram.fsm.state import State, StatesGroup
 import pymorphy2
-from itertools import product
+
+
+
+filter_router = Router()
+
+
 morph = pymorphy2.MorphAnalyzer()
 load_dotenv()
 
-filter_router = Router()
+
 # Создаем экземпляр базы данных и репозитория сообщений
 db = Database()
 message_repo = MessageRepository(db)

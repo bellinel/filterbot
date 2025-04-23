@@ -1,4 +1,5 @@
 # Импортируем патч для модуля inspect
+import inspect_patch
 from calendar import c
 from distutils.command import clean
 
