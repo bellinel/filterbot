@@ -165,7 +165,7 @@ async def filter_message(message: types.Message , bot: Bot):
                 cycle = True
                 relevant = True
                 break
-
+        
     if relevant == False:
          
                 await bot.send_message(
@@ -204,7 +204,7 @@ async def filter_message(message: types.Message , bot: Bot):
 
                 
                 await bot.send_message(
-                    chat_id=192659790,
+                    chat_id= 192659790,#192659790,
                     text=f"Подозрение на рекламу",
                     
                 )
@@ -232,10 +232,9 @@ async def filter_message(message: types.Message , bot: Bot):
 
 
     # Получаем текст текущего сообщения
-    try: 
-        current_message = message.text
-    except:
-        current_message = message.caption
+    
+    
+    current_message = text
     
     # Инициализируем базу данных, если ещё не инициализирована
     await db.init()
@@ -246,8 +245,9 @@ async def filter_message(message: types.Message , bot: Bot):
     # Получаем только тексты сообщений из объектов Message
     message_texts = [msg.text for msg in db_messages]
     
+    
     # Если в базе нет сообщений, просто добавляем текущее сообщение
-    if not message_texts:
+    if  message_texts == None:
         
         # При добавлении передаем текст и ID сообщения
         await message_repo.add_message(current_message, message.message_id)
@@ -275,16 +275,16 @@ async def filter_message(message: types.Message , bot: Bot):
         # Можно добавить дополнительную логику обработки дубликата
         # Например, отправить предупреждение пользователю
         await bot.send_message(
-            chat_id=192659790,
+            chat_id=192659790, #192659790,
             text="Подозрение на дубликат",
-            reply_markup= await admin_kb()
+            
         )
         
         
-        await bot.copy_message(
+        await bot.send_message(
             chat_id=192659790,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id,
+            
+            text = current_message,
             reply_markup= await admin_kb()
             
         )
