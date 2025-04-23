@@ -297,7 +297,7 @@ async def confirm_message(callback: types.CallbackQuery, bot : Bot, state : FSMC
     GROUP_ID = os.getenv("GROUP_ID")
     await callback.answer("Сообщение подтверждено")
     
-    await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
     await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
     await callback.message.delete()
 
@@ -316,7 +316,7 @@ async def confirm_filter(callback: types.CallbackQuery, bot : Bot, state : FSMCo
     await callback.answer("Сообщение подтверждено")
     
     
-    await bot.copy_message(chat_id=-1002486056476, from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
     await callback.message.delete()
     
 
