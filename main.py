@@ -1,7 +1,7 @@
 # Импортируем патч для модуля inspect
 from calendar import c
 from distutils.command import clean
-import inspect_patch
+
 
 import asyncio
 import logging
