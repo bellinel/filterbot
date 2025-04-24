@@ -193,7 +193,7 @@ async def filter_message(message: types.Message, bot: Bot):
          
                 
                 a = await bot.forward_message(
-                    chat_id=6264939461,
+                    chat_id=192659790,
                     from_chat_id=message.chat.id,
                     message_id=message.message_id
                     
@@ -202,7 +202,7 @@ async def filter_message(message: types.Message, bot: Bot):
                 )
                 print(a.message_id)
                 await bot.send_message(
-                    chat_id=6264939461,
+                    chat_id=192659790,
                     text=f"Подозрение на нерелевантную вакансию",
                     reply_markup= await filter_admin_kb()
                 )
@@ -235,7 +235,7 @@ async def filter_message(message: types.Message, bot: Bot):
                 
                
                 a = await bot.forward_message(
-                    chat_id=6264939461,
+                    chat_id=192659790,
                     from_chat_id=message.chat.id,
                     message_id=message.message_id
                     
@@ -246,7 +246,7 @@ async def filter_message(message: types.Message, bot: Bot):
 
                 )
                 await bot.send_message(
-                    chat_id= 6264939461,#192659790,
+                    chat_id= 192659790,#192659790,
                     text=f"Подозрение на рекламу",
                     reply_markup= await filter_admin_kb()
                     
@@ -312,7 +312,7 @@ async def filter_message(message: types.Message, bot: Bot):
        
         
         a = await bot.forward_message(
-            chat_id=6264939461,
+            chat_id=192659790,
             from_chat_id=message.chat.id,
             message_id=message.message_id
             
@@ -321,7 +321,7 @@ async def filter_message(message: types.Message, bot: Bot):
             
         )
         await bot.send_message(
-            chat_id=6264939461, #192659790,
+            chat_id=192659790,
             text="Подозрение на дубликат",
             reply_markup= await admin_kb()
             
