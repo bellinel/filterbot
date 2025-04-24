@@ -310,8 +310,13 @@ async def filter_message(message: types.Message , bot: Bot):
 async def confirm_message(callback: types.CallbackQuery, bot : Bot, state : FSMContext):
     GROUP_ID = os.getenv("GROUP_ID")
     await callback.answer("Сообщение подтверждено")
+    try:
+        await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    except:
+        await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+
     
-    await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    
     await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
     await callback.message.delete()
 
@@ -329,8 +334,11 @@ async def confirm_filter(callback: types.CallbackQuery, bot : Bot, state : FSMCo
     GROUP_ID = os.getenv("GROUP_ID")
     await callback.answer("Сообщение подтверждено")
     
-    
-    await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    try:
+        await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    except:
+        await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+
     await callback.message.delete()
     
 
@@ -401,9 +409,9 @@ async def back_to_reklama_menu(callback: types.CallbackQuery, state: FSMContext,
     try:
         for id in ids:
            await callback.bot.delete_message(chat_id=callback.message.chat.id, message_id=id)
-        await callback.message.answer("Управление фильрами рекламы", reply_markup=await reklama_kb())
+        await callback.message.answer("Управление фильтрами рекламы", reply_markup=await reklama_kb())
     except:
-        await callback.message.answer("Управление фильрами рекламы", reply_markup=await reklama_kb())
+        await callback.message.answer("Управление фильтрами рекламы", reply_markup=await reklama_kb())
     
     
 
