@@ -161,7 +161,7 @@ async def filter_message(message: types.Message , bot: Bot):
         for i in case_forms:
             
 
-            if i in text:
+            if i in text[:200]:
                 cycle = True
                 relevant = True
                 break
