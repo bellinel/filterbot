@@ -4,13 +4,12 @@ from itertools import product
 
 import os
 import re
-from traceback import print_tb
-from turtle import forward
+
 from aiogram import Bot, Dispatcher, Router
 from aiogram import types
 from dotenv import load_dotenv
 from aiogram  import F
-from joblib import Memory
+
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -23,7 +22,7 @@ from aiogram.filters.command import Command
 from keyboard import admin_kb, filter_admin_kb, menu_kb, reklama_filter_back_kb, reklama_filter_delete_kb, reklama_kb, relevant_filter_back_kb, relevant_filter_delete_kb, relevant_kb
 from aiogram.fsm.state import State, StatesGroup
 import pymorphy2
-from time import sleep
+
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.base import StorageKey
 
