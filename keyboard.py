@@ -1,10 +1,10 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
  
 
-async def admin_kb():
+async def admin_kb(forward_message_id):
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Оставить", callback_data="confirm")
-    builder.button(text="❌ Удалить", callback_data="reject")
+    builder.button(text="✅ Оставить", callback_data=f"confirm:{forward_message_id}")
+    builder.button(text="❌ Удалить", callback_data=f"reject:{forward_message_id}")
     builder.adjust(2)
     return builder.as_markup()
 
@@ -64,10 +64,10 @@ async def relevant_filter_back_kb():
 
 
 
-async def filter_admin_kb():
+async def filter_admin_kb(forward_message_id):
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Выложить", callback_data="confirm_filter")
-    builder.button(text="❌ Удалить", callback_data="reject")
+    builder.button(text="✅ Выложить", callback_data=f"confirm_filter:{forward_message_id}")
+    builder.button(text="❌ Удалить", callback_data=f"reject:{forward_message_id}")
     builder.adjust(2)
     return builder.as_markup()
 

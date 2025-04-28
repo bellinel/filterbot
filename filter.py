@@ -33,7 +33,7 @@ filter_router = Router()
 morph = pymorphy2.MorphAnalyzer()
 load_dotenv()
 
-dp = Dispatcher(storage=MemoryStorage())
+
 # Создаем экземпляр базы данных и репозитория сообщений
 db = Database()
 message_repo = MessageRepository(db)
@@ -134,19 +134,6 @@ async def generate_all_case_forms(phrase):
 
 @filter_router.channel_post()
 async def filter_message(message: types.Message, bot: Bot):
-    
-    GROUP_ID = os.getenv("GROUP_ID")
-   
-    state = FSMContext(
-        storage=dp.storage,
-        key=StorageKey(
-            chat_id=GROUP_ID,
-            user_id=GROUP_ID,
-            bot_id=bot.id,
-        )
-    )    
-
- 
 
      
     if message.sender_chat and message.sender_chat.id == (await bot.get_me()).id:
@@ -203,15 +190,13 @@ async def filter_message(message: types.Message, bot: Bot):
                 await bot.send_message(
                     chat_id=192659790,
                     text=f"Подозрение на нерелевантную вакансию",
-                    reply_markup= await filter_admin_kb()
+                    reply_markup= await filter_admin_kb(forward_message_id=a.message_id)
                 )
                 await bot.delete_message(
                     chat_id=message.chat.id,
                     message_id=message.message_id
                 )
-                await state.update_data(forward_message_id=a.message_id)
-                data = await state.get_data()
-                print(data)
+                
 
                 return
          
@@ -247,14 +232,14 @@ async def filter_message(message: types.Message, bot: Bot):
                 await bot.send_message(
                     chat_id= 192659790,#192659790,
                     text=f"Подозрение на рекламу",
-                    reply_markup= await filter_admin_kb()
+                    reply_markup= await filter_admin_kb(forward_message_id=a.message_id)
                     
                 )
                 await bot.delete_message(
                     chat_id=message.chat.id,
                     message_id=message.message_id
                 )
-                await state.update_data(forward_message_id=a.message_id)
+                
                 return
     
 
@@ -322,7 +307,7 @@ async def filter_message(message: types.Message, bot: Bot):
         await bot.send_message(
             chat_id=192659790,
             text="Подозрение на дубликат",
-            reply_markup= await admin_kb()
+            reply_markup= await admin_kb(forward_message_id=a.message_id)
             
         )
         
@@ -331,7 +316,7 @@ async def filter_message(message: types.Message, bot: Bot):
             chat_id=message.chat.id,
             message_id=message.message_id
         )
-        await state.update_data(forward_message_id=a.message_id)
+        
         
         
     else:
@@ -345,64 +330,39 @@ async def filter_message(message: types.Message, bot: Bot):
        
 
 
-@filter_router.callback_query(F.data == 'confirm')
+@filter_router.callback_query(F.data.startswith('confirm:'))
 async def confirm_message(callback: types.CallbackQuery, bot : Bot):
     GROUP_ID = os.getenv("GROUP_ID")
-    state = FSMContext(
-        storage=dp.storage,
-        key=StorageKey(
-            chat_id=GROUP_ID,
-            user_id=GROUP_ID,
-            bot_id=bot.id,
-        )
-    ) 
+    
     await callback.answer("Сообщение подтверждено")
-    data = await state.get_data()
-    forward_message_id = data.get('forward_message_id')
+    
+    forward_message_id = callback.data.split(":")
+    forward_message_id = int(forward_message_id[1])
     await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
     await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
     await asyncio.sleep(2)
     await callback.message.delete()
 
-@filter_router.callback_query(F.data == 'reject')
+@filter_router.callback_query(F.data.startswith('reject:'))
 async def reject_message(callback: types.CallbackQuery,  bot: Bot):
-    GROUP_ID = os.getenv("GROUP_ID")
-    state = FSMContext(
-        storage=dp.storage,
-        key=StorageKey(
-            chat_id=GROUP_ID,
-            user_id=GROUP_ID,
-            bot_id=bot.id,
-        )
-    ) 
-    data = await state.get_data()
-    forward_message_id = data.get('forward_message_id')
+    forward_message_id = callback.data.split(":")
+    forward_message_id = int(forward_message_id[1])
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
     await callback.answer("Сообщение отклонено")
     await asyncio.sleep(2)
     await callback.message.delete()
-    await state.clear()
+    
 
 
-@filter_router.callback_query(F.data == 'confirm_filter')
+@filter_router.callback_query(F.data.startswith('confirm_filter:'))
 async def confirm_filter(callback: types.CallbackQuery, bot : Bot):
     GROUP_ID = os.getenv("GROUP_ID")
     await callback.answer("Сообщение подтверждено")
+    forward_message_id = callback.data.split(":")
+    forward_message_id = int(forward_message_id[1])
     
-    state = FSMContext(
-        storage=dp.storage,
-        key=StorageKey(
-            chat_id=GROUP_ID,
-            user_id=GROUP_ID,
-            bot_id=bot.id,
-        )
-    )    
-
-    data = await state.get_data()
-    forward_message_id = data.get('forward_message_id')
-    print(data)
-    print(forward_message_id)
+   
     try:
         await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
     except:
@@ -410,7 +370,7 @@ async def confirm_filter(callback: types.CallbackQuery, bot : Bot):
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
     await asyncio.sleep(2)
     await callback.message.delete()
-    await state.clear()
+    
 
 
 
