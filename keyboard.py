@@ -43,7 +43,7 @@ async def reklama_filter_back_kb():
 
 async def relevant_kb():
     builder = InlineKeyboardBuilder()
-    builder.button(text="Вывести список фильтров не релевантных вакансий", callback_data="all_filter_relevant")
+    builder.button(text="Вывести список фильтров релевантных вакансий", callback_data="all_filter_relevant")
     builder.button(text="+ Добавить фильтр", callback_data="add_filter_relevant")
     builder.button(text="⬅️ Назад", callback_data="back_to_menu")
     builder.adjust(1)

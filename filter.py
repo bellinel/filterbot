@@ -455,7 +455,7 @@ async def relevant(callback: types.CallbackQuery, state: FSMContext):
 
 @filter_router.callback_query(F.data == 'add_filter_relevant')
 async def add_relevant(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Введите текст фильтра не релевантных вакансий")
+    await callback.message.edit_text("Введите текст фильтра релевантных вакансий")
     await state.set_state(ChannelID.add_relevant_filter)
 
 
