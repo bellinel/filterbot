@@ -152,7 +152,9 @@ async def filter_message(message: types.Message, bot: Bot):
         return  # Если нет ни текста, ни подписи, выходим
         
     # Приводим к нижнему регистру, если текст не None
+    
     if text:
+        text_for_message = text
         text = text.lower()
         
     data = await message_repo.get_ne_relevant_filters()
@@ -178,10 +180,10 @@ async def filter_message(message: types.Message, bot: Bot):
     if relevant == False:
          
                 
-                a = await bot.forward_message(
+                a = await bot.send_message(
                     chat_id=192659790,
-                    from_chat_id=message.chat.id,
-                    message_id=message.message_id
+                    text=text_for_message
+                    
                     
                 
 
@@ -218,10 +220,9 @@ async def filter_message(message: types.Message, bot: Bot):
 
                 
                
-                a = await bot.forward_message(
+                a = await bot.send_message(
                     chat_id=192659790,
-                    from_chat_id=message.chat.id,
-                    message_id=message.message_id
+                    text=text_for_message
                     
                     
                    
@@ -295,10 +296,9 @@ async def filter_message(message: types.Message, bot: Bot):
         # Например, отправить предупреждение пользователю
        
         
-        a = await bot.forward_message(
+        a = await bot.send_message(
             chat_id=192659790,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id
+            text=text_for_message
             
             
             
