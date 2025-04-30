@@ -180,15 +180,17 @@ async def filter_message(message: types.Message, bot: Bot):
     if relevant == False:
          
                 
-                a = await bot.send_message(
+                a = await bot.forward_message(
                     chat_id=192659790,
-                    text=text_for_message
+                    from_chat_id=message.chat.id,
+                    message_id=message.message_id
+                    
                     
                     
                 
 
                 )
-                print(a.message_id)
+                
                 await bot.send_message(
                     chat_id=192659790,
                     text=f"Подозрение на нерелевантную вакансию",
@@ -220,9 +222,10 @@ async def filter_message(message: types.Message, bot: Bot):
 
                 
                
-                a = await bot.send_message(
+                a = await bot.forward_message(
                     chat_id=192659790,
-                    text=text_for_message
+                    from_chat_id=message.chat.id,
+                    message_id=message.message_id
                     
                     
                    
@@ -296,9 +299,10 @@ async def filter_message(message: types.Message, bot: Bot):
         # Например, отправить предупреждение пользователю
        
         
-        a = await bot.send_message(
+        a = await bot.forward_message(
             chat_id=192659790,
-            text=text_for_message
+            from_chat_id=message.chat.id,
+            message_id=message.message_id
             
             
             
@@ -339,7 +343,7 @@ async def confirm_message(callback: types.CallbackQuery, bot : Bot):
     forward_message_id = callback.data.split(":")
     forward_message_id = int(forward_message_id[1])
     
-    await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
+    await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
     await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
     await asyncio.sleep(2)
@@ -365,7 +369,7 @@ async def confirm_filter(callback: types.CallbackQuery, bot : Bot):
     
    
     try:
-        await bot.copy_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
+        await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
     except:
         print(forward_message_id)
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
