@@ -156,6 +156,77 @@ async def filter_message(message: types.Message, bot: Bot):
     if text:
         text_for_message = text
         text = text.lower()
+
+        
+    
+    current_message = text
+    
+    # Инициализируем базу данных, если ещё не инициализирована
+    await db.init()
+    
+    # Получаем все сообщения из базы данных через экземпляр репозитория
+    db_messages = await message_repo.get_all_messages()
+    
+    # Получаем только тексты сообщений из объектов Message
+    message_texts = [msg.text for msg in db_messages]
+    
+    
+    # Если в базе нет сообщений, просто добавляем текущее сообщение
+    if  message_texts == None:
+        
+        # При добавлении передаем текст и ID сообщения
+        await message_repo.add_message(current_message, message.message_id)
+        return
+    
+    # Сравниваем текущее сообщение со всеми сообщениями в базе
+    similarities, most_similar_idx, max_similarity, features = await compare_message_with_all(current_message, message_texts)
+    # 
+    # Вывод результатов
+   
+    
+    # Вывод сходства с каждым сообщением в базе
+    
+    
+    
+    # Вывод наиболее похожего сообщения
+   
+    
+    # Порог для определения дубликатов
+    threshold = 0.3
+    
+    # Проверяем, является ли сообщение новым (уникальным)
+    if max_similarity >= threshold:
+       
+        # Можно добавить дополнительную логику обработки дубликата
+        # Например, отправить предупреждение пользователю
+       
+        
+        a = await bot.forward_message(
+            chat_id=192659790,
+            from_chat_id=message.chat.id,
+            message_id=message.message_id
+            
+            
+            
+            
+        )
+        await bot.send_message(
+            chat_id=192659790,
+            text="Подозрение на дубликат",
+            reply_markup= await admin_kb(forward_message_id=a.message_id)
+            
+        )
+        
+        
+        await bot.delete_message(
+            chat_id=message.chat.id,
+            message_id=message.message_id
+        )
+        
+        return
+    
+        # Добавляем сообщение в базу данных с ID сообщения
+        
         
     data = await message_repo.get_ne_relevant_filters()
     
@@ -246,7 +317,7 @@ async def filter_message(message: types.Message, bot: Bot):
                 
                 return
     
-
+    await message_repo.add_message(current_message, message.message_id)
 
 
 
@@ -255,79 +326,7 @@ async def filter_message(message: types.Message, bot: Bot):
 
 
     # Получаем текст текущего сообщения
-    
-    
-    current_message = text
-    
-    # Инициализируем базу данных, если ещё не инициализирована
-    await db.init()
-    
-    # Получаем все сообщения из базы данных через экземпляр репозитория
-    db_messages = await message_repo.get_all_messages()
-    
-    # Получаем только тексты сообщений из объектов Message
-    message_texts = [msg.text for msg in db_messages]
-    
-    
-    # Если в базе нет сообщений, просто добавляем текущее сообщение
-    if  message_texts == None:
-        
-        # При добавлении передаем текст и ID сообщения
-        await message_repo.add_message(current_message, message.message_id)
-        return
-    
-    # Сравниваем текущее сообщение со всеми сообщениями в базе
-    similarities, most_similar_idx, max_similarity, features = await compare_message_with_all(current_message, message_texts)
-    # 
-    # Вывод результатов
-   
-    
-    # Вывод сходства с каждым сообщением в базе
-    
-    
-    
-    # Вывод наиболее похожего сообщения
-   
-    
-    # Порог для определения дубликатов
-    threshold = 0.3
-    
-    # Проверяем, является ли сообщение новым (уникальным)
-    if max_similarity >= threshold:
-       
-        # Можно добавить дополнительную логику обработки дубликата
-        # Например, отправить предупреждение пользователю
-       
-        
-        a = await bot.forward_message(
-            chat_id=192659790,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id
-            
-            
-            
-            
-        )
-        await bot.send_message(
-            chat_id=192659790,
-            text="Подозрение на дубликат",
-            reply_markup= await admin_kb(forward_message_id=a.message_id)
-            
-        )
-        
-        
-        await bot.delete_message(
-            chat_id=message.chat.id,
-            message_id=message.message_id
-        )
-        
-        
-        
-    else:
-        
-        
-        # Добавляем сообщение в базу данных с ID сообщения
-        await message_repo.add_message(current_message, message.message_id)
+
         
         
         
