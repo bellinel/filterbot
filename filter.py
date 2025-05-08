@@ -33,7 +33,7 @@ filter_router = Router()
 morph = pymorphy2.MorphAnalyzer()
 load_dotenv()
 
-
+ADMIN_ID=os.getenv("ADMIN_ID")
 # Создаем экземпляр базы данных и репозитория сообщений
 db = Database()
 message_repo = MessageRepository(db)
@@ -172,7 +172,7 @@ async def filter_message(message: types.Message, bot: Bot):
     
     
     # Если в базе нет сообщений, просто добавляем текущее сообщение
-    if  message_texts == None:
+    if  not message_texts:
         
         # При добавлении передаем текст и ID сообщения
         await message_repo.add_message(current_message, message.message_id)
@@ -202,16 +202,16 @@ async def filter_message(message: types.Message, bot: Bot):
        
         
         a = await bot.forward_message(
-            chat_id=192659790,
+            chat_id=ADMIN_ID,
             from_chat_id=message.chat.id,
             message_id=message.message_id
             
-            
+        
             
             
         )
         await bot.send_message(
-            chat_id=192659790,
+            chat_id=ADMIN_ID,
             text="Подозрение на дубликат",
             reply_markup= await admin_kb(forward_message_id=a.message_id)
             
@@ -222,7 +222,7 @@ async def filter_message(message: types.Message, bot: Bot):
             chat_id=message.chat.id,
             message_id=message.message_id
         )
-        
+        await message_repo.add_message(current_message, a.message_id)
         return
     
         # Добавляем сообщение в базу данных с ID сообщения
@@ -252,7 +252,7 @@ async def filter_message(message: types.Message, bot: Bot):
          
                 
                 a = await bot.forward_message(
-                    chat_id=192659790,
+                    chat_id=ADMIN_ID,
                     from_chat_id=message.chat.id,
                     message_id=message.message_id
                     
@@ -263,7 +263,7 @@ async def filter_message(message: types.Message, bot: Bot):
                 )
                 
                 await bot.send_message(
-                    chat_id=192659790,
+                    chat_id=ADMIN_ID,
                     text=f"Подозрение на нерелевантную вакансию",
                     reply_markup= await filter_admin_kb(forward_message_id=a.message_id)
                 )
@@ -272,7 +272,7 @@ async def filter_message(message: types.Message, bot: Bot):
                     message_id=message.message_id
                 )
                 
-
+                await message_repo.add_message(current_message, a.message_id)
                 return
          
                 
@@ -294,7 +294,7 @@ async def filter_message(message: types.Message, bot: Bot):
                 
                
                 a = await bot.forward_message(
-                    chat_id=192659790,
+                    chat_id=ADMIN_ID,
                     from_chat_id=message.chat.id,
                     message_id=message.message_id
                     
@@ -305,7 +305,7 @@ async def filter_message(message: types.Message, bot: Bot):
 
                 )
                 await bot.send_message(
-                    chat_id=192659790,#192659790,
+                    chat_id=ADMIN_ID,#192659790,
                     text=f"Подозрение на рекламу",
                     reply_markup= await filter_admin_kb(forward_message_id=a.message_id)
                     
@@ -314,7 +314,7 @@ async def filter_message(message: types.Message, bot: Bot):
                     chat_id=message.chat.id,
                     message_id=message.message_id
                 )
-                
+                await message_repo.add_message(current_message, a.message_id)
                 return
     
     await message_repo.add_message(current_message, message.message_id)
@@ -341,10 +341,10 @@ async def confirm_message(callback: types.CallbackQuery, bot : Bot):
     
     forward_message_id = callback.data.split(":")
     forward_message_id = int(forward_message_id[1])
-    
+     # Предыдущее обновление
     await bot.forward_message(chat_id=int(GROUP_ID), from_chat_id=callback.message.chat.id, message_id=forward_message_id)
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=forward_message_id)
-    await MessageRepository(db).add_message(text=callback.message.text, message_id=callback.message.message_id)
+    
     await asyncio.sleep(2)
     await callback.message.delete()
 
@@ -356,6 +356,7 @@ async def reject_message(callback: types.CallbackQuery,  bot: Bot):
     await callback.answer("Сообщение отклонено")
     await asyncio.sleep(2)
     await callback.message.delete()
+    await message_repo.delete_message(forward_message_id)
     
 
 
