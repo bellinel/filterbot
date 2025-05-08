@@ -63,9 +63,31 @@ class MessageRepository:
         async with self.db.session_factory() as session:
             query = select(Message)
             result = await session.execute(query)
+            if result is None:
+                return None
             messages = result.scalars().all()
             return messages
-            
+    
+    async def delete_message(self, message_id: int) -> None:
+        """
+        Удаляет сообщение из базы данных по его ID.
+
+        Args:
+            message_id (int): ID сообщения
+
+        Returns:
+            None
+        """
+        async with self.db.session_factory() as session:
+            query = select(Message).where(Message.message_id == message_id)
+            result = await session.execute(query)
+            message = result.scalar_one_or_none()
+
+            if message:
+                await session.delete(message)
+                await session.commit()
+                self.logger.info(f"Сообщение с ID {message_id} удалено из базы данных")
+
     async def clear_database(self) -> None:
         """
         Очищает всю базу данных сообщений.
